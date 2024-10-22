@@ -47,7 +47,7 @@ button {
 }
 
 button:hover {
-    background-color: #007bff;
+    background-color: #0056b3;
 }
 
 .loan {
@@ -67,6 +67,7 @@ button:hover {
     color: white;
     padding: 10px 20px;
     border-radius: 5px;
+    transition: background-color 0.3s;
 }
 
 .btn:hover {
@@ -76,20 +77,57 @@ button:hover {
 #paymentSection {
     display: none;
 }
+
 .button-container {
-    display: flex; /* Use flexbox for layout */
-    justify-content: center; /* Center the buttons horizontally */
-    gap: 10px; /* Optional: space between buttons */
-    margin-top: 20px; /* Optional: space above buttons */
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
 }
 
-.btn {
-    padding: 10px 20px; 
-    background-color: #007bff; 
-    text-decoration: none; 
-    transition: background-color 0.3s; 
+/* Media query for mobile devices */
+@media (max-width: 768px) {
+    .container {
+        width: 90%;
+        margin: 10% auto;
+    }
+
+    input, select, button {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    .btn {
+        padding: 8px 16px;
+    }
+
+    h1, h2 {
+        font-size: 1.5rem;
+    }
 }
 
-.btn:hover {
-    background-color: #0056b3;
+/* Media query for small devices (e.g., phones) */
+@media (max-width: 480px) {
+    .container {
+        width: 100%;
+        margin: 5% auto;
+        padding: 15px;
+    }
+
+    input, select, button {
+        font-size: 14px;
+        padding: 7px;
+    }
+
+    .btn {
+        padding: 7px 15px;
+    }
+
+    h1, h2 {
+        font-size: 1.2rem;
+    }
+
+    .loan {
+        padding: 10px;
+    }
 }
