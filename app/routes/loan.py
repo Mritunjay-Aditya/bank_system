@@ -71,23 +71,23 @@ async def payment(payment_request: PaymentRequest):
         loan["emi_left"] -= 1
     elif payment_type == "LUMP SUM":
         loan["balance_amount"] -= amount_paid
-        
-        if loan["balance_amount"] <= 0.99:
-            loan["balance_amount"] = 0
-            loan["emi_left"] = 0
-            loan["status"] = "Paid Off"
-        else:
-            remaining_loan_amount = loan["balance_amount"]
-            emi = round(remaining_loan_amount / loan["emi_left"], 2)
-            loan["emi"] = emi
 
-            if emi < 1.00:
-                loan["balance_amount"] = 0
-                loan["emi_left"] = 0
-                loan["status"] = "Paid Off"
+    # Check if loan is fully paid off
+    if loan["balance_amount"] <= 0.99:
+        loan["balance_amount"] = 0
+        loan["emi_left"] = 0
+        loan["emi"] = 0  # Set EMI to 0 when fully paid off
+        loan["status"] = "Paid Off"
+    else:
+        # Recalculate EMI if not fully paid off
+        remaining_loan_amount = loan["balance_amount"]
+        emi = round(remaining_loan_amount / loan["emi_left"], 2) if loan["emi_left"] > 0 else 0
+        loan["emi"] = emi
 
+    # Update loan details in the database
     loans_collection.update_one({"loan_id": loan_id}, {"$set": loan})
 
+    # Log the payment
     payment = Payment(loan_id=loan_id, amount_paid=amount_paid, payment_type=payment_type).dict()
     loans_collection.update_one({"loan_id": loan_id}, {"$push": {"payments": payment}})
 
@@ -97,7 +97,7 @@ async def payment(payment_request: PaymentRequest):
         "emi_left": loan["emi_left"],
         "monthly_emi": loan.get("emi", 0)
     }
-
+    
 @router.get("/ledger/{loan_id}")
 async def ledger(loan_id: str):
     loan = loans_collection.find_one({"loan_id": loan_id})

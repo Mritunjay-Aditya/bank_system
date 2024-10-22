@@ -31,19 +31,24 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            const response = await fetch('/auth/signup', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, password })
-            });
+            try {
+                const response = await fetch('/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
 
-            if (response.ok) {
-                alert('Account created successfully!');
-                localStorage.setItem('username', data.username);
-                window.location.href = '/login';
-            } else {
                 const data = await response.json();
-                alert(data.detail || 'Error creating account.');
+                if (response.ok) {
+                    alert('Account created successfully!');
+                    localStorage.setItem('username', data.username);  // Store username in localStorage
+                    window.location.href = '/login';  // Redirect to login page
+                } else {
+                    alert(data.detail || 'Error creating account.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to create account. Please try again.');
             }
         });
     </script>
