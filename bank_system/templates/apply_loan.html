@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Apply for Loan</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Apply for Loan</h2>
+        <form id="loan-form">
+            <input type="number" id="loan_amount" placeholder="Loan Amount" required />
+            <input type="number" id="loan_period" placeholder="Loan Period (years)" required />
+            <input type="number" id="rate_of_interest" placeholder="Rate of Interest (%)" required />
+            <button type="submit">Apply</button>
+        </form>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

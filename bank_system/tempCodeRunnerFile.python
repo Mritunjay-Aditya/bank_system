@@ -1,0 +1,57 @@
+import os
+
+# Define the base directory
+base_dir = os.getcwd()  # Get current working directory
+
+# Define directory structures
+directories = [
+    "app",
+    "app/routes"
+]
+
+# Define files (optional, you can remove these lines if not needed)
+files = [
+    os.path.join(base_dir, ".env"),
+    os.path.join(base_dir, "requirements.txt"),
+    os.path.join(base_dir, "run.sh")
+]
+
+# Create directories
+for directory in directories:
+    path = os.path.join(base_dir, directory)
+    try:
+        os.makedirs(path)
+        print(f"Directory '{path}' created successfully.")
+    except FileExistsError:
+        print(f"Directory '{path}' already exists.")
+
+# Create files (optional)
+for file_path in files:
+    try:
+        with open(file_path, "w") as f:
+            f.write("")  # Empty files
+        print(f"File '{file_path}' created successfully.")
+    except FileExistsError:
+        print(f"File '{file_path}' already exists.")
+
+# Create empty files inside app directory (optional)
+app_dir = os.path.join(base_dir, "app")
+empty_files = [
+    os.path.join(app_dir, "__init__.py"),
+    os.path.join(app_dir, "main.py"),
+    os.path.join(app_dir, "config.py"),
+    os.path.join(app_dir, "models.py"),
+    os.path.join(app_dir, "utils.py"),
+    os.path.join(app_dir, "database.py"),
+    os.path.join(app_dir, "routes", "__init__.py"),
+    os.path.join(app_dir, "routes", "auth.py"),
+    os.path.join(app_dir, "routes", "loan.py"),
+]
+
+for file_path in empty_files:
+    try:
+        with open(file_path, "w") as f:
+            f.write("")  # Empty files
+        print(f"File '{file_path}' created successfully.")
+    except FileExistsError:
+        print(f"File '{file_path}' already exists.")

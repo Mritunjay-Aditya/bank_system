@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome to the Bank System</h2>
+        <button id="signupBtn">Sign Up</button>
+        <button id="loginBtn">Login</button>
+    </div>
+
+    <script>
+        // JavaScript to handle page redirects when buttons are clicked
+        document.getElementById('signupBtn').addEventListener('click', function() {
+            window.location.href = "/signup";
+        });
+
+        document.getElementById('loginBtn').addEventListener('click', function() {
+            window.location.href = "/login";
+        });
+    </script>
+</body>
+</html>
