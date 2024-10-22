@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Loan Overview</h1>
+        <div class="user-info" style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <p><strong>Customer ID:</strong> <span id="customerId"></span></p>
+                <p><strong>Username:</strong> <span id="username"></span></p>
+            </div>
+            <button id="logoutBtn">Logout</button>
+        </div>
+        <button id="lendBtn">Request Loan</button>
+        <div id="loanOverview"></div>
+        <div id="paymentSection" style="display:none;">
+            <h2>Make Payment</h2>
+            <form id="paymentForm">
+                <label for="loanId">Loan ID:</label>
+                <input type="text" id="loanId" readonly>
+                <label for="amount">Amount:</label>
+                <input type="number" id="amount" step="0.01" required>
+                <label for="paymentType">Payment Type:</label>
+                <select id="paymentType">
+                    <option value="EMI">EMI</option>
+                    <option value="LUMP SUM">Lump Sum</option>
+                </select>
+                <button type="submit">Submit Payment</button>
+            </form>
+        </div>
+        <div id="lendModal" style="display:none;">
+            <h2>Request Loan</h2>
+            <form id="lendForm">
+                <label for="loanAmount">Loan Amount:</label>
+                <input type="number" id="loanAmount" step="0.01" required>
+                <label for="loanPeriod">Loan Period (months):</label>
+                <input type="number" id="loanPeriod" required>
+                <label for="rateOfInterest">Rate of Interest (%):</label>
+                <input type="number" id="rateOfInterest" step="0.01" required>
+                <button type="submit">Request Loan</button>
+                <button type="button" id="closeLendModal">Close</button>
+            </form>
+        </div>
+        <div id="loanDetailsModal" style="display:none;">
+            <h2>Loan Details</h2>
+            <div id="loanDetails"></div>
+            <button id="makePaymentBtn" style="display:none;">Make Payment</button>
+            <button id="closeDetailsModal">Close</button>
+        </div>
+    </div>
+    <script>
+        const customerId = localStorage.getItem('customer_id');
+        const username = localStorage.getItem('username');
+
+        document.getElementById('customerId').textContent = customerId;
+        document.getElementById('username').textContent = username;
+
+        async function fetchLoans() {
+            const response = await fetch(`/loan/account_overview/${customerId}`);
+            const loans = await response.json();
+            const loanOverview = document.getElementById('loanOverview');
+            loanOverview.innerHTML = loans.map(loan => `
+                <div class="loan">
+                    <p><strong>Loan ID:</strong> ${loan.loan_id}</p>
+                    <p><strong>Loan Amount:</strong> ${loan.loan_amount}</p>
+                    <p><strong>Total Amount:</strong> ${loan.total_amount}</p>
+                    <p><strong>EMI:</strong> ${loan.emi}</p>
+                    <p><strong>EMI Left:</strong> ${loan.emi_left}</p>
+                    <p><strong>Status:</strong> ${loan.status}</p>
+                    <button onclick="viewLoan('${loan.loan_id}', '${loan.status}', ${loan.emi})">View Details</button>
+                </div>
+            `).join('');
+        }
+
+        async function viewLoan(loanId, loanStatus, emi) {
+            const response = await fetch(`/loan/ledger/${loanId}`);
+            let status = loanStatus;
+            if (response.ok) {
+                const loan = await response.json();
+                if (loan.status) {
+                    status = loan.status;
+                }
+                const loanDetails = document.getElementById('loanDetails');
+                loanDetails.innerHTML = `
+                    <p><strong>Loan ID:</strong> ${loan.loan_id}</p>
+                    <p><strong>Loan Amount:</strong> ${loan.loan_amount}</p>
+                    <p><strong>Total Amount:</strong> ${loan.total_amount}</p>
+                    <p><strong>EMI:</strong> ${loan.emi}</p>
+                    <p><strong>EMI Left:</strong> ${loan.emi_left}</p>
+                    <p><strong>Status:</strong> ${status}</p>
+                    <p><strong>Balance Amount:</strong> ${loan.balance_amount}</p>
+                `;
+                const makePaymentBtn = document.getElementById('makePaymentBtn');
+                makePaymentBtn.style.display = (status === 'Active') ? 'inline' : 'none';
+                document.getElementById('loanDetailsModal').style.display = 'block';
+                document.getElementById('loanId').value = loan.loan_id;
+                document.getElementById('amount').setAttribute('max', loan.balance_amount);
+                document.getElementById('amount').setAttribute('data-emi', emi);
+                window.scrollTo(0, document.getElementById('loanDetailsModal').offsetTop);
+            } else {
+                const errorData = await response.json();
+                alert('Failed to fetch loan details: ' + errorData.detail);
+            }
+        }
+
+        const lendForm = document.getElementById('lendForm');
+        lendForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const loanAmount = document.getElementById('loanAmount').value;
+            const loanPeriod = document.getElementById('loanPeriod').value;
+            const rateOfInterest = document.getElementById('rateOfInterest').value;
+            const payload = {
+                customer_id: customerId,
+                loan_amount: parseFloat(loanAmount),
+                loan_period: parseInt(loanPeriod),
+                rate_of_interest: parseFloat(rateOfInterest)
+            };
+            const response = await fetch(`/loan/lend`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+            if (response.ok) {
+                alert('Loan requested successfully');
+                fetchLoans();
+                document.getElementById('lendModal').style.display = 'none';
+            } else {
+                const errorData = await response.json();
+                alert('Failed to request loan: ' + errorData.detail);
+            }
+        });
+
+        document.getElementById('lendBtn').addEventListener('click', () => {
+            document.getElementById('lendModal').style.display = 'block';
+        });
+
+        document.getElementById('closeLendModal').addEventListener('click', () => {
+            document.getElementById('lendModal').style.display = 'none';
+        });
+
+        const paymentForm = document.getElementById('paymentForm');
+        paymentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const loanId = document.getElementById('loanId').value;
+            const amount = document.getElementById('amount').value;
+            const paymentType = document.getElementById('paymentType').value;
+            try {
+                const response = await fetch(`/loan/payment`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ loan_id: loanId, amount_paid: parseFloat(amount), payment_type: paymentType })
+                });
+                if (response.ok) {
+                    alert('Payment successful');
+                    fetchLoans();
+                    document.getElementById('paymentSection').style.display = 'none';
+                    document.getElementById('loanDetailsModal').style.display = 'none';
+                } else {
+                    const errorData = await response.json();
+                    alert('Payment failed: ' + errorData.detail);
+                }
+            } catch (error) {
+                console.error('Error during payment:', error);
+                alert('Payment failed: ' + error.message);
+            }
+        });
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        logoutBtn.addEventListener('click', () => {
+            localStorage.removeItem('customer_id');
+            localStorage.removeItem('username');
+            window.location.href = '/login';
+        });
+
+        document.getElementById('closeDetailsModal').addEventListener('click', () => {
+            document.getElementById('loanDetailsModal').style.display = 'none';
+        });
+
+        document.getElementById('makePaymentBtn').addEventListener('click', () => {
+            document.getElementById('paymentSection').style.display = 'block';
+        });
+
+        document.getElementById('paymentType').addEventListener('change', () => {
+            const paymentType = document.getElementById('paymentType').value;
+            const emi = document.getElementById('amount').getAttribute('data-emi');
+            if (paymentType === 'EMI') {
+                document.getElementById('amount').value = emi;
+            } else {
+                document.getElementById('amount').value = '';
+            }
+        });
+
+        fetchLoans();
+    </script>
+</body>
+</html>
