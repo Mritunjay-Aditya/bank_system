@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-pymongo
-python-dotenv
-passlib[bcrypt]
-python-jose[cryptography]
-pip install python-multipart
