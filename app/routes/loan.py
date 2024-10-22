@@ -72,22 +72,18 @@ async def payment(payment_request: PaymentRequest):
     elif payment_type == "LUMP SUM":
         loan["balance_amount"] -= amount_paid
 
-    # Check if loan is fully paid off
     if loan["balance_amount"] <= 0.99:
         loan["balance_amount"] = 0
         loan["emi_left"] = 0
-        loan["emi"] = 0  # Set EMI to 0 when fully paid off
+        loan["emi"] = 0  
         loan["status"] = "Paid Off"
     else:
-        # Recalculate EMI if not fully paid off
         remaining_loan_amount = loan["balance_amount"]
         emi = round(remaining_loan_amount / loan["emi_left"], 2) if loan["emi_left"] > 0 else 0
         loan["emi"] = emi
 
-    # Update loan details in the database
     loans_collection.update_one({"loan_id": loan_id}, {"$set": loan})
 
-    # Log the payment
     payment = Payment(loan_id=loan_id, amount_paid=amount_paid, payment_type=payment_type).dict()
     loans_collection.update_one({"loan_id": loan_id}, {"$push": {"payments": payment}})
 
